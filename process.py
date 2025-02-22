@@ -1,43 +1,18 @@
-from pydub import AudioSegment
 import os
+import argparse
+from pydub import AudioSegment
 
-def convert_m4a_to_mp3(input_path, output_path):
-    """
-    Convert M4A file to MP3 format.
-    
-    Args:
-        input_path (str): Path to input M4A file
-        output_path (str): Path where MP3 file will be saved
-    """
-    try:
-        # Load the M4A file
-        audio = AudioSegment.from_file(input_path, format="m4a")
-        
-        # Export as MP3
-        audio.export(output_path, format="mp3")
-        print(f"Successfully converted {input_path} to {output_path}")
-        
-    except Exception as e:
-        print(f"Error during conversion: {str(e)}")
+def convert_m4a_to_mp3(m4a_path, mp3_path):
+    """Convert M4A file to MP3 format."""
+    audio = AudioSegment.from_file(m4a_path, format="m4a")
+    audio.export(mp3_path, format="mp3")
+    print(f"Converted {m4a_path} to {mp3_path}")
 
-def create_sample(input_path, output_path, duration_minutes=3):
-    """
-    Create a sample of specified duration from an MP3 file.
-    
-    Args:
-        input_path (str): Path to input MP3 file
-        output_path (str): Path where sample MP3 file will be saved
-        duration_minutes (int): Duration of sample in minutes
-    """
+def create_sample(input_path, output_path, duration_minutes):
+    """Create a sample of the specified duration from the input audio file."""
     try:
-        # Load the MP3 file
-        audio = AudioSegment.from_file(input_path, format="mp3")
-        
-        # Convert minutes to milliseconds
-        duration_ms = duration_minutes * 60 * 1000
-        
-        # Take the first three minutes
-        sample = audio[:duration_ms]
+        audio = AudioSegment.from_file(input_path)
+        sample = audio[:duration_minutes * 60 * 1000]  # duration in milliseconds
         
         # Export the sample
         sample.export(output_path, format="mp3")
@@ -47,17 +22,21 @@ def create_sample(input_path, output_path, duration_minutes=3):
         print(f"Error creating sample: {str(e)}")
 
 if __name__ == "__main__":
-    # File paths
-    m4a_file = "hang.m4a"
-    mp3_file = "hang.mp3"
-    sample_file = "sample.mp3"
+    parser = argparse.ArgumentParser(description="Process audio files.")
+    parser.add_argument("input_file", help="Input audio file (M4A format)")
+    args = parser.parse_args()
+
+    input_file = args.input_file
+    base_name = os.path.splitext(input_file)[0]
+    mp3_file = f"{base_name}.mp3"
+    sample_file = f"{base_name}_sample.mp3"
     
     # Convert M4A to MP3 if needed
     if not os.path.exists(mp3_file):
-        if os.path.exists(m4a_file):
-            convert_m4a_to_mp3(m4a_file, mp3_file)
+        if os.path.exists(input_file):
+            convert_m4a_to_mp3(input_file, mp3_file)
         else:
-            print(f"Error: Input file '{m4a_file}' not found!")
+            print(f"Error: Input file '{input_file}' not found!")
     
     # Create 3-minute sample if MP3 exists
     if os.path.exists(mp3_file):
